@@ -62,3 +62,23 @@ insert into free_board(id, title, writer_id, writer_name, content) values(3, 'te
 INSERT INTO user_roles (user_id, role_id) VALUES (1, 2);
 INSERT INTO user_roles (user_id, role_id) VALUES (2, 3);
 INSERT INTO user_roles (user_id, role_id) VALUES (3, 1);
+
+-- Gallery table
+CREATE TABLE gallery_board(
+	id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    title varchar(40) NOT NULL,
+    writer_id BIGINT,
+    writer_name varchar(20) NOT NULL,
+    create_date DATE DEFAULT (CURRENT_DATE),
+    content TEXT NOT NULL,
+    FOREIGN KEY(writer_id) REFERENCES user (id)
+);
+
+-- Gallery file table
+CREATE TABLE gallery_board_file(
+	store_filename VARCHAR(60) NOT NULL PRIMARY KEY,
+    ordinary_filename varchar(60) NOT NULL,
+    gallery_board_id BIGINT NOT NULL ,
+    data longBLOB NOT NULL, 
+    FOREIGN KEY(free_board_id) REFERENCES free_board(id) ON DELETE CASCADE
+);
