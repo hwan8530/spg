@@ -1,5 +1,6 @@
 package com.example.demo.board.domain;
 
+import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.*;
@@ -31,6 +32,9 @@ public class GalleryBoard {
 	@Size(max = 20)
 	@Column(name = "writer_name")
 	private String writerName;
+
+	@Column(name = "create_date")
+	private Calendar createDate;
 
 	@NotBlank
 	@Column(name = "content", columnDefinition = "TEXT")

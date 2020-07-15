@@ -2,8 +2,10 @@ package com.example.demo.board.controller;
 
 import com.example.demo.board.domain.FreeBoard;
 import com.example.demo.board.domain.FreeBoardFile;
+import com.example.demo.board.domain.GalleryBoard;
 import com.example.demo.board.service.FreeBoardFileService;
 import com.example.demo.board.service.FreeBoardService;
+import com.example.demo.board.service.GalleryBoardService;
 import com.example.demo.login.domain.User;
 import com.example.demo.login.service.UserPrincipal;
 import com.example.demo.login.service.UserService;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,6 +39,9 @@ public class BoardController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private GalleryBoardService galleryBoardService;
 
     // 자유게시판
     @GetMapping(value = "freeBoard")
@@ -150,7 +156,13 @@ public class BoardController {
 
         UserPrincipal user = (UserPrincipal) session.getAttribute("user");
         model.addAttribute("userName", user.getUsername());
-
+        
+        List<GalleryBoard> list = this.galleryBoardService.findAll();
+        
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String create_date = simpleDateFormat.format(list.get(0).getCreateDate().getTime().toString());
+        model.addAttribute("create_date", create_date);
+        model.addAttribute("title", list.get(0).getTitle());
         return "board/gallery";
     }
 
