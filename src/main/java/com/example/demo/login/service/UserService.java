@@ -53,12 +53,34 @@ public class UserService {
         this.userRepository.deleteByUserName(username);
     }
 
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional
     public User changeUserPassword(String username, String passowrd) {
         User oridinaryUser = this.userRepository.findByUserName(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        boolean isUserPasswordCorrect = this.bCryptPasswordEncoder.matches(passowrd, oridinaryUser.getPassword());
+        if (!isUserPasswordCorrect) {
+            return null;
+        }
         oridinaryUser.setPassword(this.bCryptPasswordEncoder.encode(passowrd));
 
         return this.userRepository.save(oridinaryUser);
+    }
+
+    @Transactional
+    public boolean checkNowPassword(String username, String passowrd) {
+        User user = this.userRepository.findByUserName(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        return this.bCryptPasswordEncoder.matches(passowrd, user.getPassword());
+    }
+
+    @Transactional
+    public User updateUsernameAndName(String pastUserName, String username, String name) {
+        User user = this.userRepository.findByUserName(pastUserName)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        user.setUserName(username);
+        user.setName(name);
+
+        return this.userRepository.save(user);
     }
 }

@@ -152,6 +152,11 @@
     box-sizing: border-box;
 }
 
+.col-sm{
+	width: 70%;
+	margin: 0 auto;
+}
+
 input, button {
     font-family: inherit;
 }
