@@ -46,7 +46,8 @@ public class BoardController {
     // 자유게시판
     @GetMapping(value = "freeBoard")
     public String goFreeBoard(HttpSession session, Model model,
-                              @RequestParam(value = "pageNum", defaultValue = "1") int pageNum) {
+                              @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+                              @RequestParam(value = "searchKey", defaultValue = "") String searchKey) {
 
         // session
         if (session.getAttribute("userName") != null) {
@@ -54,9 +55,17 @@ public class BoardController {
             model.addAttribute("userName", userName);
         }
 
-        int totalCount = this.freeBoardService.getTotalCount();
-        List<FreeBoard> pageList = this.freeBoardService.findByPage(pageNum - 1);
+        int totalCount;
+        List<FreeBoard> pageList;
         PageVO pageInfo = new PageVO();
+
+        if (searchKey.equals("")) { // 검색키워드가 없는 경우
+            pageList = this.freeBoardService.findByPage(pageNum - 1);
+            totalCount = this.freeBoardService.getTotalCount();
+        } else {
+            pageList = this.freeBoardService.findByTitleContainingOrContentContaining(pageNum - 1, searchKey);
+            totalCount = this.freeBoardService.getCountByTitleContainingOrContentContaining(searchKey);
+        }
 
         if (totalCount > 0) {
             pageInfo.setPageSize(10);
@@ -66,30 +75,30 @@ public class BoardController {
 
         model.addAttribute("pageList", pageList);
         model.addAttribute("pageInfo", pageInfo);
+        model.addAttribute("searchKey", searchKey);
 
         return "/board/free_board";
     }
 
+    // todo: please fix this part with frontend
     @GetMapping(value = "freeBoard/detail")
     public String goFreeBoardDetail(HttpSession session, Model model,
-                                    @RequestParam("contentId") Long contentId) {
+                                    @RequestParam("contentId") long contentId) {
 
         if (session.getAttribute("userName") != null) {
             String userName = (String) session.getAttribute("userName");
             model.addAttribute("userName", userName);
         }
 
-        FreeBoard content = this.freeBoardService.findById(contentId);
-        FreeBoardFile fileInContent = this.freeBoardFileService.findByFreeBoardId(contentId);
+        FreeBoard content = this.freeBoardService.getFreeBoardDetail(contentId);
+        List<FreeBoardFile> freeBoardFiles = content.getFreeBoardFile();
 
-        if (content != null) {
-            model.addAttribute("contentTitle", content.getTitle());
-            model.addAttribute("writerName", content.getWriterName());
-            model.addAttribute("contentText", content.getContent());
-        }
+        model.addAttribute("contentTitle", content.getTitle());
+        model.addAttribute("writerName", content.getWriterName());
+        model.addAttribute("contentText", content.getContent());
 
-        if (fileInContent != null) {
-            model.addAttribute("fileName", fileInContent.getOrdinaryFileName());
+        if (freeBoardFiles != null && freeBoardFiles.size() != 0) {
+            model.addAttribute("fileName", freeBoardFiles.get(0).getOrdinaryFileName());
         }
 
         return "/board/free_board_detail";
@@ -131,7 +140,7 @@ public class BoardController {
                 uploadFile.transferTo(file);
 
                 Long freeBoardId = this.freeBoardService.save(freeBoard).getId();
-                FreeBoardFile freeBoardfile = new FreeBoardFile(storeFileName, ordinaryFileName, freeBoardId.longValue());
+                FreeBoardFile freeBoardfile = new FreeBoardFile(storeFileName, ordinaryFileName, freeBoardId);
                 this.freeBoardFileService.save(freeBoardfile);
             } catch (Exception e) {
                 e.printStackTrace();
